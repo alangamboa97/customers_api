@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	
+	<flow name="customers_apiFlow" doc:id="110a2751-0fe4-4ef9-b96f-16e27abe1bf4" >
+		<http:listener doc:name="Listener" doc:id="bf4ca819-5b36-47c1-a4bf-3df57b14bc2c" config-ref="HTTP_Listener_config1" path="/api/v1/sps/customers"/>
+		<logger level="INFO" doc:name="Logger" doc:id="df646a51-7bef-4eb6-81f8-56ecce5acf78" message='#[output application/java&#10;---&#10;"Username: " ++ Mule::p("secure::db.user")&#10;++ "-" ++ &#10;"Password:" ++ Mule::p("secure::db.password")]'/>
+		<db:select doc:name="Select" doc:id="76752c95-c7bb-4ded-b03f-2d0890265c6f" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM customers]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="4cb4e205-e9bf-4f68-ae56-444e002d99ae" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map(item, index) ->{
+	FirstName: item.FirstName,
+	LastName: item.LastName,
+	Email: item.Email,
+	Company: item.Company
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
